@@ -15,12 +15,13 @@ The "front" (oldest) value of the wedge is always the greatest (or least) of all
 Read the original Lemire paper [here](https://arxiv.org/abs/cs/0610046).
 
 
-### Code
+### Using the Code
 
 Only `mono_wedge.h` is necessary to utilize this algorithm in a C++ application.
 
 The implementation here conforms to the C++/STL programming style and may be used with `std::deque` and `std::vector` templates in addition to others satisfying the requirements (below).
 
+#### Adding Samples
 
 ```python
 min_wedge_update (wedge, value)
@@ -36,6 +37,17 @@ If using `mono_wedge_update`, supplying a "less" function as `comp` produces a m
 
 The container must fulfill the requirements below.  `std::vector` and `std::deque` work well.
 
+#### Retrieving the Minimum/Maximum
+
+No function is provided; simply query the front item of the container.
+
+#### "Rolling" Minimum/Maximum
+
+No function is provided; simply pop the front item from the container whenever your chosen limits on age or wedge size are exceeded.
+
+#### Lemire-Fenn Search Subroutine
+
+These do not need to be used directly.  It's a subroutine of the `wedge_update` functions.
 
 ```python
 min_wedge_search (begin, end, value)
