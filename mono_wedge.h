@@ -58,11 +58,12 @@ namespace mono_wedge
 		const T &value,
 		Compare  comp)
 	{
-		int size = (end - begin);
+		long size = long(end - begin);
 		if (size <= 0) return end;
 
 		// Linear search through at most J elements, J = log2(N-J).
-		for (int i = 1; ((size-i) >> i) > 0; ++i)
+		long i = 1;
+		for (; ((size-i) >> i) > 0; ++i)
 		{
 			// If you get a compile error here, your Wedge type does not
 			//   support random-access iterators and should be changed!
@@ -70,8 +71,8 @@ namespace mono_wedge
 			if (comp(*test, value)) return test+1;
 		}
 
-		// Defer to upper_bound for binary search.
-		return std::lower_bound<Iterator, T, Compare>(begin, end-i, value, comp);
+		// Defer to lower_bound for binary search.
+		return std::lower_bound<Iterator, T, Compare>(begin, end-(i-1), value, comp);
 	}
 
 
@@ -115,10 +116,10 @@ namespace mono_wedge
 			These will use std::greater/less, which default to operator >/<.
 	*/
 	template<class Iterator, class T>
-	Iterator min_wedge_search(Iterator begin, Iterator end, const T &value)    {return mono_wedge_search(begin, end, value, std::less<value>());}
+	Iterator min_wedge_search(Iterator begin, Iterator end, const T &value)    {return mono_wedge_search(begin, end, value, std::less<T>());}
 
 	template<class Iterator, class T>
-	Iterator max_wedge_search(Iterator begin, Iterator end, const T &value)    {return mono_wedge_search(begin, end, value, std::greater<value>());}
+	Iterator max_wedge_search(Iterator begin, Iterator end, const T &value)    {return mono_wedge_search(begin, end, value, std::greater<T>());}
 
 	/*
 		min_wedge_update(wedge, value)
@@ -128,10 +129,10 @@ namespace mono_wedge
 			These will use std::greater/less, which default to operator >/<.
 	*/
 	template<class Wedge, class T>
-	void min_wedge_update(Wedge &wedge, const T &value)    {return mono_wedge_update(begin, end, value, std::less<value>());}
+	void min_wedge_update(Wedge &wedge, const T &value)    {return mono_wedge_update(wedge, value, std::less<T>());}
 
 	template<class Wedge, class T>
-	void max_wedge_update(Wedge &wedge, const T &value)    {return mono_wedge_update(begin, end, value, std::greater<value>());}
+	void max_wedge_update(Wedge &wedge, const T &value)    {return mono_wedge_update(wedge, value, std::greater<T>());}
 
 
 #if __cplusplus > 199711L
