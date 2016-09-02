@@ -5,15 +5,15 @@
 
 float generateSignal(int time)
 {
-  return std::sin(.1f*time) * std::exp(-.1f*time);
+	return std::sin(.1f*time) * std::exp(-.1f*time);
 }
 
 struct Sample
 {
-  float value;
-  int   time;
+	float value;
+	int   time;
   
-  bool operator<(const Sample &o) const    {return value < o.value;}
+	bool operator<(const Sample &o) const    {return value < o.value;}
 }
 
 void example()
