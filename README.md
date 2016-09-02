@@ -2,11 +2,17 @@
 
 ## Lemire-Fenn algorithm for rolling min/max
 
-The Lemire algorithm allows for computing the rolling minimum and maximum values of a signal in amortized constant time per sample.  The algorithm here incorporates enhancements proposed by Ethan Fenn to lower the worst-case complexity per sample from **O(N)** to **O(log2(N)).**  An additional minor enhancement of my own invention lowers it very slightly further to **O(J)** where **J=log2(N-J)**.
+Computing the minimum and maximum values in a "rolling" range --- such as the last second of an audio signal --- is a common problem in DSP, particularly in "peak finding" problems which often arise in transient detection and compressor design.  They can also be used to observe trends in gradually-changing values.
+
+The Lemire algorithm allows for computing the rolling minimum and maximum values in amortized constant time per sample, regardless of range.  The algorithm here incorporates enhancements proposed by Ethan Fenn to lower the worst-case complexity per sample from **O(N)** to **O(log2(N)).**  My implementation here lowers that _very slightly_ further to **O(J)**, where **J=log2(N-J)**.
 
 The algorithm works by maintaining a "monotonic wedge", comprising those values which compare greater (or less) than all values following them and ending with the latest value.  Each time a new value is added to the wedge, any values which are not greater (or less) than the latest value are removed from the end of the wedge, after which the new value is appended.
 
-The "front" value of the wedge is always the greatest (or least) of all.  Typically values beyond a certain age are removed (via `pop_front` or similar) in order to evaluate the largest (or smallest) value in a finite range.  Even if this is not done, the algorithm will update in amortized linear time---but the worst-case time will increase!
+Think of it like this:  A tall mountain hides a shorter one behind it.  If a new mountain were to appear, we would lose sight of anything further and shorter --- but we would glimpse higher peaks beyond.
+
+The "front" (oldest) value of the wedge is always the greatest (or least) of all.  Typically values beyond a certain age are removed (via `pop_front` or similar) in order to evaluate the largest (or smallest) value in a finite range.  Even if this is not done, the algorithm will update in amortized linear time---only the worst-case time per sample will increase!
+
+Read the original Lemire paper (here)[https://arxiv.org/abs/cs/0610046].
 
 
 ### Code
@@ -16,7 +22,7 @@ Only `mono_wedge.h` is necessary to utilize this algorithm in a C++ application.
 The implementation here conforms to the C++/STL programming style and may be used with `std::deque` and `std::vector` templates in addition to others satisfying the requirements (below).
 
 
-```c++
+```python
 min_wedge_update (wedge, value)
 max_wedge_update (wedge, value)
 mono_wedge_update(wedge, value, comp)
@@ -31,7 +37,7 @@ If using `mono_wedge_update`, supplying a "less" function as `comp` produces a m
 The container must fulfill the requirements below.  `std::vector` and `std::deque` work well.
 
 
-```c++
+```python
 min_wedge_search (begin, end, value)
 max_wedge_search (begin, end, value)
 mono_wedge_search(begin, end, value, comp)
@@ -50,7 +56,14 @@ The iterators must fulfill the requirements below.  `std::vector` and `std::dequ
 
 `wedge_update` functions require that the wedge class produces random access iterators from its `begin()` and `end()` methods, and supports appending elements via a `push_back` method.  `std::vector` and `std::deque` satisfy these requirements.
 
-_(Users may wish to use a ringbuffer structure with this algorithm for DSP purposes.  If I hear about an STL-compliant ringbuffer implementation, I'll link it here.)_
+
+## Future Work
+
+DSP applications may prefer to use a fixed-size ringbuffer as the underlying container for a wedge of bounded size.  The documentation should be updated with a recommendation for an STL-compliant ringbuffer implementation.
+
+In addition to the `<algorithm>`-inspired functions here, it may be convenient to implement a wedge container type.  This could behave similar to `std::queue`, which is internally implemented using `std::deque`.
+
+I may or may not pursue these enhancements myself, and welcome pull requests.
 
 
 ## License
