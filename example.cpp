@@ -24,7 +24,7 @@ void example()
 	
 	for (int time = 0; time < 1000; ++time)
 	{
-	  // Generate a new sample with timestamp
+		// Generate a new sample with timestamp
 		Sample sample = {generateSignal(time), time};
 		
 		// Add the new sample to our wedge
