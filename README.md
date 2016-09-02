@@ -12,7 +12,7 @@ _(Think of it like gazing at a mountain range from a great distance.  If a new m
 
 The "front" (oldest) value of the wedge is always the greatest (or least) of all.  Typically values beyond a certain age are removed (via `pop_front` or similar) in order to evaluate the largest (or smallest) value in a finite range.  Even if this is not done, the algorithm will update in amortized linear time---only the worst-case time per sample will increase!
 
-Read the original Lemire paper (here)[https://arxiv.org/abs/cs/0610046].
+Read the original Lemire paper [here](https://arxiv.org/abs/cs/0610046).
 
 
 ### Code
@@ -75,6 +75,6 @@ See the LICENSE file for full copy.
 
 ## Credits
 
-The original algorithm was designed by Daniel Lemire:  (See here)[https://github.com/lemire/runningmaxmin] for his implementation (or here)[https://arxiv.org/abs/cs/0610046] for the paper.
+The original algorithm was designed by Daniel Lemire:  [See here](https://github.com/lemire/runningmaxmin) for his implementation [or here](https://arxiv.org/abs/cs/0610046) for the paper.
 
 The enhanced algorithm was proposed on the music-dsp mailing list by Ethan Fenn and implemented here by Evan Balster.
