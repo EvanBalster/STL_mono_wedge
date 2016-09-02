@@ -4,7 +4,7 @@
 
 Computing the minimum and maximum values in a "rolling" range --- such as the last second of an audio signal --- is a common problem in DSP, particularly in "peak finding" problems which often arise in transient detection and compressor design.  They can also be used to observe trends in gradually-changing values.
 
-The Lemire algorithm allows for computing the rolling minimum and maximum values in amortized constant time per sample, regardless of range.  The algorithm here incorporates enhancements proposed by Ethan Fenn to lower the worst-case complexity per sample from **O(N)** to **O(log2(N)).**  My implementation here lowers that _very slightly_ further to **O(J)**, where **J=log2(N-J)**.
+The brilliantly simple Lemire algorithm allows for computing the rolling minimum and maximum values in amortized constant time per sample, regardless of range.  The algorithm implemented here incorporates enhancements proposed by Ethan Fenn to lower the worst-case complexity per sample from **O(N)** to **O(log2(N))**.
 
 The algorithm works by maintaining a "monotonic wedge", comprising those values which compare greater (or less) than all values following them and ending with the latest value.  Each time a new value is added to the wedge, any values which are not greater (or less) than the latest value are removed from the end of the wedge, after which the new value is appended.
 
@@ -45,7 +45,7 @@ mono_wedge_search(begin, end, value, comp)
 
 These functions behave similar to `std::lower_bound`, returning the first element which does not satisfy `comp(value, element)`.
 
-**Complexity:**  Slightly less than **O(log2(N))** time in the worst case.  Uses a combination of linear and binary search in order to facilitate amortized constant-time execution of `wedge_update` routines.
+**Complexity:**  Slightly less than **O(log2(N))** time in the worst case, where N is the number of elements in the wedge.  Uses a combination of linear and binary search in order to facilitate amortized constant-time execution of `wedge_update` routines.
 
 The iterators must fulfill the requirements below.  `std::vector` and `std::deque` work well.
 
@@ -54,7 +54,7 @@ The iterators must fulfill the requirements below.  `std::vector` and `std::dequ
 
 `wedge_search` functions may be used with any range of random access iterators, including those provided by `std::vector` and `std::deque`.
 
-`wedge_update` functions require that the wedge class produces random access iterators from its `begin()` and `end()` methods, and supports appending elements via a `push_back` method.  `std::vector` and `std::deque` satisfy these requirements.
+`wedge_update` functions require that the wedge class produces random access iterators from its `begin()` and `end()` methods, and supports appending elements via a `push_back` method.  Again, `std::vector` and `std::deque` satisfy these requirements.
 
 
 ## Future Work
