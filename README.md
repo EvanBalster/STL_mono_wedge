@@ -8,7 +8,7 @@ The Lemire algorithm allows for computing the rolling minimum and maximum values
 
 The algorithm works by maintaining a "monotonic wedge", comprising those values which compare greater (or less) than all values following them and ending with the latest value.  Each time a new value is added to the wedge, any values which are not greater (or less) than the latest value are removed from the end of the wedge, after which the new value is appended.
 
-Think of it like this:  A tall mountain hides a shorter one behind it.  If a new mountain were to appear, we would lose sight of anything further and shorter --- but we would glimpse higher peaks beyond.
+_(Think of it like gazing at a mountain range from a great distance.  If a new mountain were to appear, it would obscure the foothills behind it --- but not the higher peaks beyond.)_
 
 The "front" (oldest) value of the wedge is always the greatest (or least) of all.  Typically values beyond a certain age are removed (via `pop_front` or similar) in order to evaluate the largest (or smallest) value in a finite range.  Even if this is not done, the algorithm will update in amortized linear time---only the worst-case time per sample will increase!
 
