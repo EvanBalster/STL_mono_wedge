@@ -47,7 +47,7 @@ No function is provided; simply pop the front item from the container whenever y
 
 #### Lemire-Fenn Search Subroutine
 
-These do not need to be used directly.  It's a subroutine of the `wedge_update` functions.
+_These are subroutines of the `wedge_update` functions and do not need to be used directly._
 
 ```python
 min_wedge_search (begin, end, value)
