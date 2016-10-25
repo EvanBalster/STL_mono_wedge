@@ -14,6 +14,7 @@ struct Sample
 	int   time;
   
 	bool operator<(const Sample &o) const    {return value < o.value;}
+	bool operator>(const Sample &o) const    {return value > o.value;}
 }
 
 void example()
