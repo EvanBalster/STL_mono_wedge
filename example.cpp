@@ -18,7 +18,7 @@ struct Sample
 
 void example()
 {
-	std::deque<float> max_wedge;
+	std::deque<Sample> max_wedge;
 	
 	int rangeSize = 100;
 	
