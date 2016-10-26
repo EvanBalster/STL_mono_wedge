@@ -43,7 +43,7 @@ No function is provided; simply query the front item of the container.
 
 #### "Rolling" Minimum/Maximum
 
-No function is provided; simply pop the front item from the container whenever your chosen limits on age or wedge size are exceeded.
+No function is provided; simply pop the back item(s) from the container whenever your chosen limits on age or wedge size are exceeded.
 
 #### Lemire-Fenn Search Subroutine
 
