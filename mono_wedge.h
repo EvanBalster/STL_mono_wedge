@@ -58,21 +58,19 @@ namespace mono_wedge
 		const T &value,
 		Compare  comp)
 	{
-		long size = long(end - begin);
-		if (size <= 0) return end;
+		size_t size = std::distance(begin, end);
+		if (size <= 0ul) return end;
 
 		// Linear search through at most J elements, J = log2(N-J).
-		long i = 1;
-		for (; ((size-i) >> i) > 0; ++i)
+		Iterator search_pos = end; --search_pos;
+		size_t i = 1ul;
+		for (; ((size-i) >> i) > 0ul; ++i, --search_pos)
 		{
-			// If you get a compile error here, your Wedge type does not
-			//   support random-access iterators and should be changed!
-			Iterator test = end-i;
-			if (comp(*test, value)) return test+1;
+			if (comp(*search_pos, value)) return ++search_pos;
 		}
 
 		// Defer to lower_bound for binary search.
-		return std::lower_bound<Iterator, T, Compare>(begin, end-(i-1), value, comp);
+		return std::lower_bound<Iterator, T, Compare>(begin, ++search_pos, value, comp);
 	}
 
 
@@ -101,9 +99,9 @@ namespace mono_wedge
 		const T &value,
 		Compare  comp)
 	{
-		wedge.erase(
-			mono_wedge_search(wedge.begin(), wedge.end(), value, comp),
-			wedge.end());
+		typename Wedge::iterator i = mono_wedge_search(wedge.begin(), wedge.end(), value, comp);
+		size_t erase_count = std::distance(i, wedge.end());
+		while (erase_count--) wedge.pop_back();
 		wedge.push_back(value);
 	}
 
@@ -143,9 +141,9 @@ namespace mono_wedge
 	template<class Wedge, class T, class Compare>
 	void mono_wedge_update(Wedge &wedge, T &&value, Compare comp)
 	{
-		wedge.erase(
-			mono_wedge_search(wedge.begin(), wedge.end(), value, comp),
-			wedge.end());
+		typename Wedge::iterator i = mono_wedge_search(wedge.begin(), wedge.end(), value, comp);
+		size_t erase_count = std::distance(i, wedge.end());
+		while (erase_count--) wedge.pop_back();
 		wedge.push_back(std::forward(value));
 	}
 
