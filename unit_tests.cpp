@@ -59,13 +59,13 @@ bool test(const Signal &signal, unsigned interval = 0)
 			std::cout << "      New global min: t=" << t << ", value=" << value << std::endl;
 		}*/
 		
+		// Pop old samples
+		while (!min_wedge.empty() && t - min_wedge.front().time >= interval) min_wedge.pop_front();
+		while (!min_wedge.empty() && t - max_wedge.front().time >= interval) max_wedge.pop_front();
+		
 		// Update the wedge
 		min_wedge_update(min_wedge, sample);
 		max_wedge_update(max_wedge, sample);
-		
-		// Pop old samples
-		while (t - min_wedge.front().time >= interval) min_wedge.pop_front();
-		while (t - max_wedge.front().time >= interval) max_wedge.pop_front();
 		
 		// Compare wedge result with actual min/max
 		float refMin = 1e18f, refMax = -1e18f;
