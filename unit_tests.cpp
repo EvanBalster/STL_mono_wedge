@@ -9,14 +9,19 @@
 #include <iostream>
 
 #include <vector>
-#include <deque>
+
+#define USE_RINGBUFFER 1
+
+#if USE_RINGBUFFER
+	#include "stl_ringbuffer.h"
+#else
+	#include <deque>
+#endif
 
 #include <cstdlib> // For rand()
 #include <cmath>   // For sin()
 
 #include "mono_wedge.h"
-
-#include "stl_ringbuffer.h"
 
 using namespace mono_wedge;
 
@@ -30,7 +35,6 @@ struct Sample
 };
 
 typedef std::vector<float> Signal;
-typedef fixed_ringbuffer<Sample> Wedge;
 
 bool test(const Signal &signal, unsigned interval = 0)
 {
@@ -38,26 +42,21 @@ bool test(const Signal &signal, unsigned interval = 0)
 	
 	if (interval == 0) interval = unsigned(signal.size());
 	
-	Wedge
-		min_wedge(interval), //, Wedge::resize_policy::no_resize),
-		max_wedge(interval); //, Wedge::resize_policy::no_resize);
-	
-	//std::deque<Sample>
-	//	min_wedge, //, Wedge::resize_policy::no_resize),
-	//	max_wedge;
+#if USE_RINGBUFFER
+	fixed_ringbuffer<Sample>
+		min_wedge(interval),
+		max_wedge(interval);
+#else
+	std::deque<Sample>
+		min_wedge,
+		max_wedge;
+#endif
 	
 	for (unsigned t = 0; t < signal.size(); ++t)
 	{
-		if ((t&255)==0) std::cout << '.' << std::flush;
-		
 		float value = signal[t];
 		
 		Sample sample = {t, value};
-		
-		/*if (min_wedge_search(min_wedge.begin(), min_wedge.end(), sample) == min_wedge.begin())
-		{
-			std::cout << "      New global min: t=" << t << ", value=" << value << std::endl;
-		}*/
 		
 		// Pop old samples
 		while (!min_wedge.empty() && t - min_wedge.front().time >= interval) min_wedge.pop_front();
@@ -92,8 +91,6 @@ bool test(const Signal &signal, unsigned interval = 0)
 			//break;
 		}
 	}
-	
-	std::cout << std::endl;
 	
 	std::cout << "      " << (success ? "...OK" : "...FAILED") << std::endl;
 		

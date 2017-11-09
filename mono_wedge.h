@@ -61,7 +61,7 @@ namespace mono_wedge
 		size_t size = std::distance(begin, end);
 		if (size <= 0ul) return end;
 
-		// Linear search through at most J elements, J = log2(N-J).
+		// Linear search through at most J elements, where J = log2(N-J).
 		Iterator search_pos = end; --search_pos;
 		size_t i = 1ul;
 		for (; ((size-i) >> i) > 0ul; ++i, --search_pos)
@@ -69,7 +69,7 @@ namespace mono_wedge
 			if (comp(*search_pos, value)) return ++search_pos;
 		}
 
-		// Defer to lower_bound for binary search.
+		// Afterwards run a binary search (use std::lower_bound)
 		return std::lower_bound<Iterator, T, Compare>(begin, ++search_pos, value, comp);
 	}
 
