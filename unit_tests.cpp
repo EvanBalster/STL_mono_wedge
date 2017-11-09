@@ -16,6 +16,8 @@
 
 #include "mono_wedge.h"
 
+#include "stl_ringbuffer.h"
+
 using namespace mono_wedge;
 
 struct Sample
@@ -28,18 +30,26 @@ struct Sample
 };
 
 typedef std::vector<float> Signal;
-typedef std::deque<Sample> Wedge;
+typedef fixed_ringbuffer<Sample> Wedge;
 
 bool test(const Signal &signal, unsigned interval = 0)
 {
 	bool success = true;
 	
-	Wedge min_wedge, max_wedge;
-	
 	if (interval == 0) interval = unsigned(signal.size());
+	
+	Wedge
+		min_wedge(interval), //, Wedge::resize_policy::no_resize),
+		max_wedge(interval); //, Wedge::resize_policy::no_resize);
+	
+	//std::deque<Sample>
+	//	min_wedge, //, Wedge::resize_policy::no_resize),
+	//	max_wedge;
 	
 	for (unsigned t = 0; t < signal.size(); ++t)
 	{
+		if ((t&255)==0) std::cout << '.' << std::flush;
+		
 		float value = signal[t];
 		
 		Sample sample = {t, value};
@@ -82,6 +92,8 @@ bool test(const Signal &signal, unsigned interval = 0)
 			//break;
 		}
 	}
+	
+	std::cout << std::endl;
 	
 	std::cout << "      " << (success ? "...OK" : "...FAILED") << std::endl;
 		
@@ -151,5 +163,5 @@ int main(int argc, const char * argv[])
 		success &= test(noisySine);
 	}
 	
-	return success ? 1 : 0;
+	return success ? 0 : 1;
 }
