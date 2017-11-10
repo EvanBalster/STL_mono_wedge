@@ -2,6 +2,7 @@
 #define MONOTONIC_WEDGE_H
 
 #include <algorithm>
+#include <functional>
 
 #if __cplusplus > 199711L
 	#include <utility> // For std::forward

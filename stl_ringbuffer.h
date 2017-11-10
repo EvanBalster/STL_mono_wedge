@@ -48,11 +48,11 @@ namespace mono_wedge
 		class _iterator
 		{
 		public:
-			typedef fixed_ringbuffer::difference_type difference_type;
-			typedef T_Value                           value_type;
-			typedef T_Value&                          reference;
-			typedef T_Value*                          pointer;
-			typedef std::random_access_iterator_tag   iterator_category;
+			typedef typename T_ringbuffer::difference_type difference_type;
+			typedef T_Value                                value_type;
+			typedef T_Value&                               reference;
+			typedef T_Value*                               pointer;
+			typedef std::random_access_iterator_tag        iterator_category;
 		
 		public:
 			_iterator()                                                 : _ring(NULL), _idx(0)     {}
@@ -89,8 +89,6 @@ namespace mono_wedge
 		protected:
 			T_ringbuffer *_ring;
 			size_type     _idx;
-			
-			friend void std::swap(_iterator &a, _iterator &b);
 		};
 	
 		typedef _iterator<      fixed_ringbuffer<T, Allocator>,       T> iterator;
