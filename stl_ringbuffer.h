@@ -105,7 +105,7 @@ namespace mono_wedge
 		fixed_ringbuffer(size_type min_capacity, const Allocator &alloc = Allocator()) :
 			_alloc(alloc)
 		{
-			_ind_bits = (detail::next_power_of_two(min_capacity) << 1) - 1;
+			_ind_bits = _capacity_to_ind_bits(_capacity_at_least(min_capacity));
 			_store = _alloc.allocate(capacity());
 			_head = 0;
 			_tail = 0;
@@ -113,12 +113,19 @@ namespace mono_wedge
 		
 		~fixed_ringbuffer()
 		{
-			if (_store)
-			{
-				clear();
-				_alloc.deallocate(_store, capacity());
-			}
+			if (_store) _deallocate();
 		}
+
+		// Copying
+		fixed_ringbuffer &operator=(const fixed_ringbuffer &original)    {_deallocate(); _copy_from(original, original.capacity());}
+		fixed_ringbuffer           (const fixed_ringbuffer &original)    {               _copy_from(original, original.capacity());}
+
+		// Moving
+		fixed_ringbuffer &operator=(fixed_ringbuffer      &&source)               {_deallocate(); _move_from(source);}
+		fixed_ringbuffer           (fixed_ringbuffer      &&source) noexcept      {               _move_from(source);}
+
+		// Request that the capacity be increased to at least min_capacity.
+		void reserve(size_type min_capacity)                  {if (min_capacity > capacity()) _copy_from(*this, min_capacity);}
 		
 		// Accessors.
 		const_reference operator[](size_type pos) const    {return _get(pos);}
@@ -158,7 +165,7 @@ namespace mono_wedge
 		bool           full    () const    {return _head == (_tail^capacity());}
 		size_type      size    () const    {return _size(_head, _tail);}
 		size_type      max_size() const    {return capacity();}
-		size_type      capacity() const    {return (_ind_bits+1) >> 1;}
+		size_type      capacity() const    {return _ind_bits_to_capacity(_ind_bits);}
 		
 		// Iterators.
 		iterator       begin   ()          {return       iterator(this, _head);}
@@ -176,34 +183,13 @@ namespace mono_wedge
 		const_reverse_iterator crbegin  () const    {return const_reverse_iterator(cend());}
 		const_reverse_iterator crend    () const    {return const_reverse_iterator(cbegin());}
 
-		// Request that the capacity be increased to at least min_capacity.
-		void reserve(size_type min_capacity)
-		{
-			// Allocate new capacity, if needed
-			if (min_capacity <= capacity()) return;
-			size_t new_capacity = detail::next_power_of_two(min_capacity), new_tail = 0;
-			T *new_store = _alloc.allocate(new_capacity);
-
-			// Move elements
-			for (const T &t : *this) new_store[new_tail++] = *i;
-
-			// Deallocate original storage
-			clear();
-			_alloc.deallocate(_store, capacity());
-
-			// Setup
-			_ind_bits = (new_capacity << 1) - 1;
-			_store = new_store;
-			_head = 0;
-			_tail = new_tail;
-		}
 		
 	private:
 		Allocator _alloc;
-		T        *_store;
-		size_type _ind_bits; // Bits used to represent element index.  (2*capacity-1)
-		size_type _head;
-		size_type _tail;
+		T        *_store    = nullptr;
+		size_type _ind_bits = 0; // Bits used to represent element index.  (2*capacity-1)
+		size_type _head     = 0;
+		size_type _tail     = 0;
 		
 	private:
 		friend class _iterator<      fixed_ringbuffer<T, Allocator>,       T>;
@@ -228,6 +214,47 @@ namespace mono_wedge
 		
 		size_type _offset(size_type pos, difference_type offset) const    {return size_type((difference_type(pos) + offset) & _ind_bits);}
 		size_type _offset(size_type pos, size_type       offset) const    {return size_type(pos + offset) & _ind_bits;}
+
+		static size_type _capacity_at_least   (size_type min_capacity)    {return detail::next_power_of_two(min_capacity);}
+		static size_type _capacity_to_ind_bits(size_type capacity)        {return (capacity << 1) - 1;}
+		static size_type _ind_bits_to_capacity(size_type ind_bits)        {return (ind_bits + 1) >> 1;}
+
+		void _deallocate()
+		{
+			clear();
+			_alloc.deallocate(_store, capacity());
+			_store = nullptr;
+			_ind_bits = 0;
+		}
+
+		void _move_from(const fixed_ringbuffer &source)
+		{
+			_alloc    = source._alloc;
+			_store    = source._store;
+			_ind_bits = source._ind_bits;
+			_head     = source._head;
+			_tail     = source._tail;
+			source._store = nullptr;
+			source._ind_bits = 0;
+			source._head = 0;
+			source._tail = 0;
+		}
+		void _copy_from(const fixed_ringbuffer &original, size_type capacity)
+		{
+			// Clone original ringbuffer (which may be this object)
+			size_t new_capacity = _capacity_at_least(std::max(capacity, original.capacity())), new_tail = 0;
+			T     *new_store    = _alloc.allocate(new_capacity);
+			for (const T &t : original) new_store[new_tail++] = t;
+
+			// Deallocate our own storage
+			if (_store) _deallocate();
+
+			// Setup
+			_ind_bits = _capacity_to_ind_bits(new_capacity);
+			_store = new_store;
+			_head = 0;
+			_tail = new_tail;
+		}
 
 		size_type _erase(size_type first, size_type last)
 		{
