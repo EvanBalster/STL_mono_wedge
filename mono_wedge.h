@@ -5,7 +5,7 @@
 #include <functional>
 
 #if __cplusplus > 199711L
-	#include <utility> // For std::forward
+#include <utility> // For std::forward
 #endif
 
 /*
@@ -56,7 +56,7 @@ namespace mono_wedge
 	Iterator mono_wedge_search(
 		Iterator begin,
 		Iterator end,
-		const T &value,
+		const T& value,
 		Compare  comp)
 	{
 		size_t size = std::distance(begin, end);
@@ -65,7 +65,7 @@ namespace mono_wedge
 		// Linear search through at most J elements, where J = log2(N-J).
 		Iterator search_pos = end; --search_pos;
 		size_t i = 1ul;
-		for (; ((size-i) >> i) > 0ul; ++i, --search_pos)
+		for (; ((size - i) >> i) > 0ul; ++i, --search_pos)
 		{
 			if (comp(*search_pos, value)) return ++search_pos;
 		}
@@ -96,13 +96,12 @@ namespace mono_wedge
 	*/
 	template<class Wedge, class T, class Compare>
 	void mono_wedge_update(
-		Wedge   &wedge,
-		const T &value,
+		Wedge& wedge,
+		const T& value,
 		Compare  comp)
 	{
-		typename Wedge::iterator i = mono_wedge_search(wedge.begin(), wedge.end(), value, comp);
-		size_t erase_count = std::distance(i, wedge.end());
-		while (erase_count--) wedge.pop_back();
+		auto i = mono_wedge_search(wedge.begin(), wedge.end(), value, comp);
+		wedge.erase(i, wedge.end());
 		wedge.push_back(value);
 	}
 
@@ -115,10 +114,10 @@ namespace mono_wedge
 			These will use std::greater/less, which default to operator >/<.
 	*/
 	template<class Iterator, class T>
-	Iterator min_wedge_search(Iterator begin, Iterator end, const T &value)    {return mono_wedge_search(begin, end, value, std::less<T>());}
+	Iterator min_wedge_search(Iterator begin, Iterator end, const T& value) { return mono_wedge_search(begin, end, value, std::less<T>()); }
 
 	template<class Iterator, class T>
-	Iterator max_wedge_search(Iterator begin, Iterator end, const T &value)    {return mono_wedge_search(begin, end, value, std::greater<T>());}
+	Iterator max_wedge_search(Iterator begin, Iterator end, const T& value) { return mono_wedge_search(begin, end, value, std::greater<T>()); }
 
 	/*
 		min_wedge_update(wedge, value)
@@ -128,10 +127,10 @@ namespace mono_wedge
 			These will use std::greater/less, which default to operator >/<.
 	*/
 	template<class Wedge, class T>
-	void min_wedge_update(Wedge &wedge, const T &value)    {return mono_wedge_update(wedge, value, std::less<T>());}
+	void min_wedge_update(Wedge& wedge, const T& value) { return mono_wedge_update(wedge, value, std::less<T>()); }
 
 	template<class Wedge, class T>
-	void max_wedge_update(Wedge &wedge, const T &value)    {return mono_wedge_update(wedge, value, std::greater<T>());}
+	void max_wedge_update(Wedge& wedge, const T& value) { return mono_wedge_update(wedge, value, std::greater<T>()); }
 
 
 #if __cplusplus > 199711L
@@ -140,7 +139,7 @@ namespace mono_wedge
 	*/
 
 	template<class Wedge, class T, class Compare>
-	void mono_wedge_update(Wedge &wedge, T &&value, Compare comp)
+	void mono_wedge_update(Wedge& wedge, T&& value, Compare comp)
 	{
 		typename Wedge::iterator i = mono_wedge_search(wedge.begin(), wedge.end(), value, comp);
 		size_t erase_count = std::distance(i, wedge.end());
@@ -149,10 +148,10 @@ namespace mono_wedge
 	}
 
 	template<class Wedge, class T, class Compare>
-	void min_wedge_update(Wedge &wedge, T &&value)    {mono_wedge_update(wedge, std::forward(value), std::less<T>());}
+	void min_wedge_update(Wedge& wedge, T&& value) { mono_wedge_update(wedge, std::forward(value), std::less<T>()); }
 
 	template<class Wedge, class T, class Compare>
-	void max_wedge_update(Wedge &wedge, T &&value)    {mono_wedge_update(wedge, std::forward(value), std::greater<T>());}
+	void max_wedge_update(Wedge& wedge, T&& value) { mono_wedge_update(wedge, std::forward(value), std::greater<T>()); }
 #endif
 }
 
