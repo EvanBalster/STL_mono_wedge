@@ -33,7 +33,7 @@ Call these functions with an initally empty container in order to maintain a mon
 
 If using `mono_wedge_update`, supplying a "less" function as `comp` produces a monotonically-increasing "min-wedge", while supplying a "greater" function results in a monotonically-decreasing "max-wedge".
 
-**Complexity:**  N updates to an initially empty container will take **O(N)** time.  The worst case for a single update is slightly less than **O(log2(N))** time.
+**Complexity:**  N updates to an initially empty container will take **O(N)** time.  The worst case for a single update is **O(log2(N))** time.  For a "rolling" window where samples only remain in the container for a maximum of **W** steps, the worst-case for a single update is **O(log2(W))**.
 
 The container must fulfill the requirements below.  `std::vector` and `std::deque` work well.
 
@@ -44,6 +44,8 @@ No function is provided; simply query the front item of the container.
 #### "Rolling" Minimum/Maximum
 
 No function is provided; simply pop the back item(s) from the container whenever your chosen limits on age or wedge size are exceeded.
+
+**Complexity**:  **O(N+log2(W))** for **N** updates if the container holds at most **W** elements.  (This is where the Lemire-Fenn algorithm has an advantage over the original Lemire algorithm.)
 
 #### Lemire-Fenn Search Subroutine
 
@@ -57,7 +59,7 @@ mono_wedge_search(begin, end, value, comp)
 
 These functions behave similar to `std::lower_bound`, returning the first element which does not satisfy `comp(value, element)`.
 
-**Complexity:**  Slightly less than **O(log2(N))** time in the worst case, where N is the number of elements in the wedge.  Uses a combination of linear and binary search in order to facilitate amortized constant-time execution of `wedge_update` routines.
+**Complexity:**  **O(log2(N))** time in the worst case, where N is the number of elements in the wedge.  Uses a combination of linear and binary search in order to facilitate amortized constant-time execution of `wedge_update` routines.
 
 The iterators must fulfill the requirements below.  `std::vector` and `std::deque` work well.
 
@@ -85,8 +87,32 @@ This code is made available under the MIT license, and the underlying algorithm 
 See the LICENSE file for full copy.
 
 
-## Credits
+## Credits & History
 
 The original algorithm was designed by Daniel Lemire:  [See here](https://github.com/lemire/runningmaxmin) for his implementation [or here](https://arxiv.org/abs/cs/0610046) for the paper.
 
-The enhanced algorithm was proposed on the music-dsp mailing list by Ethan Fenn and implemented here by Evan Balster.
+The enhanced algorithm was proposed on the music-dsp mailing list by Ethan Fenn and implemented here by Evan Balster.  Read the mailing list message where the Lemire-Fenn algorithm was proposed [here](https://lists.columbia.edu/pipermail/music-dsp/2016-July/000908.html) and a discussion of its first implementation [here](https://lists.columbia.edu/pipermail/music-dsp/2016-September/001083.html).
+
+Ethan Fenn's original proposal:
+
+```
+    Ethan Fenn
+    Wed Jul 20 10:27:27 EDT 2016
+
+Of course, for processing n samples, something that is O(n) is going to
+eventually beat something that's O(n*log(w)), for big enough w.
+
+FWIW if it's important to have O(log(w)) worst case per sample, I think you
+can adapt the method of the paper to achieve this while keeping the O(1)
+average.
+
+Instead of a linear search back through the maxima, do a linear search for
+log2(w) samples and, failing that, switch to binary search. This is
+O(log(w)) worst case, but I think it would keep the property of O(1)
+comparisons per sample. I believe the upper bound would now be 4
+comparisons per sample rather than 3. I'd have to think more about it to be
+sure.
+
+-Ethan
+```
+
