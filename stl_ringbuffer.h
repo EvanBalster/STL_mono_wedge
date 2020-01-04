@@ -2,7 +2,7 @@
 #define STL_RINGBUFFER_H
 
 #include <cstddef>
-//#include <allocator>
+#include <memory>
 #include <algorithm>
 #include <iterator>
 
@@ -131,7 +131,7 @@ namespace mono_wedge
 		reference       back      ()                       {return _get(_decr(_tail, _ind_bits));}
 		
 		// Mutators (no insert / erase / resize!)
-		void clear()                   {for (auto &t : *this) {_destroy(&t);} _head = _tail = 0;}
+		void clear()                   {for (T &t : *this) {_destroy(&t);} _head = _tail = 0;}
 		void push_front(const T &v)    {if (full()) throw std::bad_alloc(); _head = _decr(_head); _create(&_get(_head), v);}
 		void push_back (const T &v)    {if (full()) throw std::bad_alloc(); _create(&_get(_tail), v); _tail = _incr(_tail);}
 		void pop_front ()              {if (empty()) return; _destroy(&_get(_head)); _head = _incr(_head);}
@@ -175,6 +175,28 @@ namespace mono_wedge
 		const_reverse_iterator rend     () const    {return const_reverse_iterator(begin());}
 		const_reverse_iterator crbegin  () const    {return const_reverse_iterator(cend());}
 		const_reverse_iterator crend    () const    {return const_reverse_iterator(cbegin());}
+
+		// Request that the capacity be increased to at least min_capacity.
+		void reserve(size_type min_capacity)
+		{
+			// Allocate new capacity, if needed
+			if (min_capacity <= capacity()) return;
+			size_t new_capacity = detail::next_power_of_two(min_capacity), new_tail = 0;
+			T *new_store = _alloc.allocate(new_capacity);
+
+			// Move elements
+			for (const T &t : *this) new_store[new_tail++] = *i;
+
+			// Deallocate original storage
+			clear();
+			_alloc.deallocate(_store, capacity());
+
+			// Setup
+			_ind_bits = (new_capacity << 1) - 1;
+			_store = new_store;
+			_head = 0;
+			_tail = new_tail;
+		}
 		
 	private:
 		Allocator _alloc;
