@@ -87,6 +87,7 @@ namespace mono_wedge
 			difference_type operator- (const _iterator &other) const    {return _ring->_difference(_idx, other._idx);}
 			
 		protected:
+			friend class fixed_ringbuffer;
 			T_ringbuffer *_ring;
 			size_type     _idx;
 		};
@@ -135,7 +136,14 @@ namespace mono_wedge
 		void push_back (const T &v)    {if (full()) throw std::bad_alloc(); _create(&_get(_tail), v); _tail = _incr(_tail);}
 		void pop_front ()              {if (empty()) return; _destroy(&_get(_head)); _head = _incr(_head);}
 		void pop_back  ()              {if (empty()) return; _tail = _decr(_tail); _destroy(&_get(_tail));}
+
+		// Erase elements.  This works similar to std::vector.
+		const_iterator erase(const_iterator first, const_iterator last)    {return const_iterator(this, _erase(first._idx, last._idx));}
+		const_iterator erase(const_iterator position)                      {return erase(position, position+1);}
+		iterator       erase(iterator       first, iterator       last)    {return iterator      (this, _erase(first._idx, last._idx));}
+		iterator       erase(iterator       position)                      {return erase(position, position+1);}
 		
+		// Swap contents with another ringbuffer
 		void swap(fixed_ringbuffer &other)
 		{
 			std::swap(_alloc,    other._alloc);
@@ -148,7 +156,7 @@ namespace mono_wedge
 		// Size and capacity.
 		bool           empty   () const    {return _head == _tail;}
 		bool           full    () const    {return _head == (_tail^capacity());}
-		size_type      size    () const    {return _size(_head, _tail, _ind_bits);}
+		size_type      size    () const    {return _size(_head, _tail);}
 		size_type      max_size() const    {return capacity();}
 		size_type      capacity() const    {return (_ind_bits+1) >> 1;}
 		
@@ -198,6 +206,19 @@ namespace mono_wedge
 		
 		size_type _offset(size_type pos, difference_type offset) const    {return size_type((difference_type(pos) + offset) & _ind_bits);}
 		size_type _offset(size_type pos, size_type       offset) const    {return size_type(pos + offset) & _ind_bits;}
+
+		size_type _erase(size_type first, size_type last)
+		{
+			if (last != _tail)
+			{
+				// Some elements must be moved
+				size_type move_offset = _slot(first + capacity() - last);
+				for (size_type i = _slot(last), ie = _slot(_tail); i != ie; i = _slot(i + 1))
+					_get(i+move_offset) = _store[i];
+			}
+			_tail = (_tail + _ind_bits+1 + first - last) & _ind_bits;
+			return first;
+		}
 		
 	 	difference_type _difference(size_type pos_term, size_type neg_term) const
 			{return difference_type(_size(_head, pos_term)) - difference_type(_size(_head, neg_term));}
